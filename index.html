@@ -7,11 +7,10 @@
     
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone@7.23.6/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@0.344.0"></script>
     
-    <!-- Fonts: Added Plus Jakarta Sans -->
     <link href="https://api.fontshare.com/v2/css?f[]=clash-display@200,400,700,900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 
@@ -88,21 +87,27 @@
 <body>
     <div id="root"></div>
 
-    <script type="text/babel">
+    <script type="text/babel" data-presets="react">
         const { useState, useEffect, useRef } = React;
 
         const Icon = ({ name, size = 24, className = "" }) => {
             const iconRef = useRef(null);
+            
             useEffect(() => {
-                if (iconRef.current) {
-                    lucide.createIcons({
-                        attrs: { size: size, 'stroke-width': 1.5 },
-                        nameAttr: 'data-lucide',
-                        icons: undefined,
+                // To avoid React DOM mutation issues with lucide replacing the node,
+                // we create a span and set the innerHTML to the generated SVG.
+                if (iconRef.current && lucide.icons[name]) {
+                    const svgMarkup = lucide.icons[name].toSvg({
+                        width: size,
+                        height: size,
+                        class: className,
+                        'stroke-width': 1.5
                     });
+                    iconRef.current.innerHTML = svgMarkup;
                 }
-            }, [name, size]);
-            return <i data-lucide={name} className={`${className}`} ref={iconRef}></i>;
+            }, [name, size, className]);
+            
+            return <span ref={iconRef} className="inline-flex items-center justify-center"></span>;
         };
 
         const DecorativeCorner = ({ position = "top-left", color = "white" }) => {
@@ -137,8 +142,7 @@
                         className={`block relative ${aspectClass} w-full overflow-hidden bg-black border border-white/5 shadow-2xl project-card-transition lg:hover:scale-[1.01]`}
                     >
                         <div 
-                            className={`absolute inset-0 bg-cover bg-center grayscale transition-all duration-[1.5s] ease-out 
-                                ${isHovered ? 'lg:opacity-0 lg:scale-105' : 'opacity-60 md:opacity-40 group-hover:grayscale-0'}`}
+                            className={`absolute inset-0 bg-cover bg-center grayscale transition-all duration-[1.5s] ease-out ${isHovered ? 'lg:opacity-0 lg:scale-105' : 'opacity-60 md:opacity-40 group-hover:grayscale-0'}`}
                             style={{ backgroundImage: `url('https://img.youtube.com/vi/${video.id}/${isLongForm ? 'maxresdefault' : 'hqdefault'}.jpg')` }}
                         ></div>
 
